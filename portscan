@@ -1,0 +1,16 @@
+#!/bin/bash
+# HERRAMIENTA PARA ANÁLISIS. 
+# DETECTA PUERTOS ABIERTOS EN UNA DETERMINADA DIRECCIÓN IP 
+# USO ./portscan.sh ip.aqui
+# chmod a+x portscan.sh 
+
+host=$1     #variable de la IP a escanear
+for puerto in {1..65535};do
+2>/dev/null echo > /dev/tcp/$host/$puerto
+if [ $? == 0 ]
+ then
+ {
+ echo " $puerto escuchando (abierto)"
+ }
+fi
+done
