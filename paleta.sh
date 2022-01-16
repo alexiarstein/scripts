@@ -1,8 +1,8 @@
 #! /bin/bash
-
+# Paleta de colores para Minilux 1.0
 n=32
 arg=setaf
-text='Minilux 1.0 (Saturno): Este color es %s %d'
+text='Minilux 1.0 (Saturno): This colour is %s %d'
 
 _help()
 {
