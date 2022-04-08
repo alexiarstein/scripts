@@ -1,0 +1,32 @@
+#!bin/bash
+# SERVER IP BLACKLISTER
+# Author: Alexia R. Steinberg
+# http://www.github.com/alexiarstein
+#
+# Usage (as root)
+# chmod a+x blacklist.sh
+# run (or cron) blacklist.sh
+#
+######################################
+
+tail /var/log/secure | grep "Failed password for root" | awk '{print $11}' > /tmp/tail-failedroot.log
+sort /tmp/tail-failedroot.log | uniq
+tail /var/log/secure | grep "Failed password for invalid user" | awk '{print $13}' > /tmp/tail-faileduser.log
+sort /tmp/tail-faileduser.log | uniq
+
+#bloquea IPs que intentan acceder como root.
+for failedLoginIP in $(cat tail-failedroot.log);
+ do
+wall "Root: [Intnto de intrusión *Usuario Root*] Bloqueando $failedLoginIP"
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='$failedLoginIP' reject"
+firewall-cmd --reload;
+done
+
+#bloquea IPs que intentan acceder como un usuario inexistente.
+for failedLoginIP in $(cat tail-faileduser.log);
+do
+wall "Root: [Intento de intrusion *usuario inexistente*] Bloqueando $failedLoginIP"
+firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='$failedLoginIP' reject"
+firewall-cmd --reload;
+done
+
