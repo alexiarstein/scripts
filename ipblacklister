@@ -1,31 +1,22 @@
 #!bin/bash
+
 # SERVER IP BLACKLISTER
-# Author: Alexia R. Steinberg
+# Author: Alexia Rivera Steinberg
 # http://www.github.com/alexiarstein
-#
+# -----------------------------------
 # Usage (as root)
 # chmod a+x blacklist.sh
 # run (or cron) blacklist.sh
-#
-######################################
+# ES: Para sacarle mayor provecho se debe agregar a un cronjob de 5 minutos.
+# EN: To take full advantage of this script it's recommended to run it as a cronjob every 5 minutes.
+# ----------------------------------
+# reglas se agregan en /etc/firewalld
 
-tail /var/log/secure | grep "Failed password for root" | awk '{print $11}' > /tmp/tail-failedroot.log
-sort /tmp/tail-failedroot.log | uniq
-tail /var/log/secure | grep "Failed password for invalid user" | awk '{print $13}' > /tmp/tail-faileduser.log
-sort /tmp/tail-faileduser.log | uniq
-
-#bloquea IPs que intentan acceder como root.
-for failedLoginIP in $(cat tail-failedroot.log);
+tail /var/log/secure | grep "Failed password for root" | awk '{print $11}' > /tmp/failedaccess.log
+tail /var/log/secure | grep "Failed password for invalid user" | awk '{print $13}' >> /tmp/failedaccess.log
+cat -n /tmp/failedaccess.log | sort -uk2 | sort -nk1 | cut -f2- > /tmp/failed.log
+for failedLoginIP in $(cat /tmp/failed.log);
  do
-wall "Root: [Intnto de intrusión *Usuario Root*] Bloqueando $failedLoginIP"
-firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='$failedLoginIP' reject"
-firewall-cmd --reload;
-done
-
-#bloquea IPs que intentan acceder como un usuario inexistente.
-for failedLoginIP in $(cat tail-faileduser.log);
-do
-wall "Root: [Intento de intrusion *usuario inexistente*] Bloqueando $failedLoginIP"
 firewall-cmd --permanent --add-rich-rule="rule family='ipv4' source address='$failedLoginIP' reject"
 firewall-cmd --reload;
 done
